@@ -1,0 +1,5 @@
+name = Joyride integration module
+description = Provides integration with joyride jquery plugin for creating site tours of html elements.
+files[] = joyride.module
+core = 7.x
+package = Services

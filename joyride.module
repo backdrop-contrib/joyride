@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+// function joyride_menu() {
+// }
+
+/**
+ * Returns the path to the joyride library.
+ */
+function _joyride_library_path() {
+  return variable_get('joyride_library_path', module_exists('libraries') ? libraries_get_path('joyride') : 'sites/all/libraries/joyride');
+}
+
+/**
+ * Implements hook_library().
+ */
+// function joyride_library() {
+//  $library_path = _joyride_library_path();
+//  return $libraries;
+//}
