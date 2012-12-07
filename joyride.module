@@ -20,3 +20,50 @@ function _joyride_library_path() {
 //  $library_path = _joyride_library_path();
 //  return $libraries;
 //}
+
+/**
+ * Implements hook_context_registry().
+ */
+function joyride_context_registry() {
+  return array(
+    'reactions' => array(
+      'joyride_add' => array(
+        'title' => t('joyride'),
+        'plugin' => 'joyride_context_reaction_add',
+        'description' => t('Add joyride chat code to the page'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Notify CTools that we'll be using the plugin API with Context module.
+ */
+function joyride_ctools_plugin_api($module, $api) {
+  if ($module == 'context' && $api == 'plugins') {
+    return array('version' => 3);
+  }
+}
+
+/**
+ * CTools plugin API hook for Context.
+ */
+function joyride_context_plugins() {
+  $plugins = array();
+  $plugins['joyride_context_reaction_add'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'joyride') . '/plugins',
+      'file' => 'joyride_context_reaction_add.inc',
+      'class' => 'joyride_context_reaction_add',
+      'parent' => 'context_reaction',
+    ),
+  );
+
+  return $plugins;
+}
+
+/**
+ * Builds and inserts the correct Olark Javascript into the page.
+ */
+// function olark_add_js() {
+//}
