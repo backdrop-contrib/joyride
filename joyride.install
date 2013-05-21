@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * Implements hook_enable().
+ */
+function joyride_enable() {
+  context_invalidate_cache();
+}
+
 /**
  * Implements hook_requirements().
  * Check installation requirements and do status reporting.
