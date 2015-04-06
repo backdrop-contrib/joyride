@@ -1,0 +1,42 @@
+{
+    "_config_name": "tour.tour.default",
+    "tours":{
+      "test1":{
+        "content":{
+           "0": {
+              "attributes": {
+                "data-text":"Next",
+                "custom-class":"custom"
+              },
+              "target":".name-and-slogan",
+              "header":"Stop #1",
+              "body":"You can control all the details for you tour stop. Any valid HTML will work inside of Joyride."
+           },
+           "1": {
+              "attributes": {
+                "data-options":"tipLocation:top;tipAnimation:fade",
+                "data-button":"Next"
+              },
+              "target":"#admin-bar",
+              "header":"Stop #2",
+              "body":"You can control all the details for you tour stop. Any valid HTML will work inside of Joyride."
+           },
+           "2": {
+              "attributes": {
+                "data-text":"Next"
+              },
+              "target":"",
+              "header":"Stop #3",
+              "body":"You can control all the details for you tour stop. Any valid HTML will work inside of Joyride."
+           }
+        },
+        "module":"tour",
+        "editable":1,
+        "path":"<front>",
+        "auto_start":1,
+        "title":"tour title",
+        "description":"tour descr",
+        "play_once":0
+      }
+    }
+}

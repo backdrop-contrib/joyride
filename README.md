@@ -1,6 +1,6 @@
-h1. Joyride JQuery for Drupal Site Tours
+Joyride JQuery for Drupal Site Tours
 
-h2. Description
+Description
 
 This module provides Drupal integration with "Zurb's Joyride Jquery plugin":https://github.com/zurb/joyride in order to provide a tour of different html elements on your Drupal site. Drupal integration is done via the "Context module":http://drupal.org/project/context, which provides a way to control conditional calling of the joyride plugin and copy-and-paste method for adding specific tour code. 
 

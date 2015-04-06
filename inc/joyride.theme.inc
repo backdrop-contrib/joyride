@@ -8,7 +8,7 @@ function joyride_preprocess_joyride_start_link(&$vars) {
 
   $vars['options']['external'] = TRUE;
 
-  if(empty($vars['link_title'])) $vars['link_title'] = t('Start the tour!');
+  if(empty($vars['link_title'])) $vars['link_title'] = t('Start the tour!');dpm('yuy');
 
   drupal_add_js(drupal_get_path('module', 'joyride') . '/inc/js/joyride_start_link.js');
 }

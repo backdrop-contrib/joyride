@@ -1,7 +1,5 @@
-; $Id$
-name = Zurb Joyride Context
+name = Joyride
 description = Provides integration with <a href="http://www.zurb.com/playground/jquery-joyride-feature-tour-plugin">Zurb Joyride</a> jQuery plugin for creating site tours of html elements.
-package = Context
-core = 7.x
-dependencies[] = context
-dependencies[] = libraries (>=7.x-2.0)
+package = User Interface
+backdrop = 1.x
+dependencies[] = libraries

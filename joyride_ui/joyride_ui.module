@@ -1,0 +1,395 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ *
+ * @see
+ */
+function joyride_ui_menu() {
+  $items = array();
+
+  $items['admin/config/user-interface/joyride'] = array(
+    'title' => 'Joyride',
+    'page callback' => 'theme',
+    'page arguments' => array('joyride_demo'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/user-interface/joyride/ui'] = array(
+    'title' => 'Joyride UI',
+    'page callback' => 'joyride_ui_list_joyrides',
+    //'page arguments' => array('joyride_demo'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  
+  $items['admin/config/user-interface/joyride/ui/%'] = array(
+    'title' => 'Joyride Editor',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('joyride_ui_edit_joyride', 5),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  
+  $items['admin/config/user-interface/joyride/demo'] = array(
+    'title' => 'Joyride Demo (Start tour automatically)',
+    'page callback' => 'theme',
+    'page arguments' => array('joyride_demo'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['admin/config/user-interface/joyride/demo/auto-start'] = array(
+    'title' => 'Joyride Demo (Start tour automatically)',
+    'page callback' => 'theme',
+    'page arguments' => array('joyride_demo'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['admin/config/user-interface/joyride/demo/manual-trigger'] = array(
+    'title' => 'Joyride Demo (Use manual trigger to start tour)',
+    'page callback' => 'theme',
+    'page arguments' => array('joyride_demo'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+
+  $items['admin/config/user-interface/joyride/demo/play-once'] = array(
+    'title' => 'Joyride Demo (Play tour only once)',
+    'page callback' => 'theme',
+    'page arguments' => array('joyride_demo'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 20,
+  );
+
+  return $items;
+}
+
+function joyride_ui_list_joyrides() {
+  $items = joyride_load_all();
+  $rows = array();
+  foreach ($items as $name => $item) {
+    $row['name'] = $name;
+    $row['description'] = $item['description'];
+    $row['edit'] = !$item['editable'] ? 'Not editable' : l('edit', 'admin/config/user-interface/joyride/ui/' . $name);
+    $row['auto_start'] = $item['auto_start'] ? 'TRUE' : 'FALSE';
+    $rows[] = $row;
+  }
+  if (!empty($rows)) {
+    $header = array(
+      t('Tour name'),
+      t('Description'),
+      t('Edit link'),
+      t('Autostart'),
+    );
+    $output = theme('table', array('header' => $header, 'rows' => $rows));
+    return $output;
+  }
+  else {
+    return t('There are no tours.');
+  }
+}
+
+function joyride_ui_edit_joyride($form, &$form_state, $name) {
+  $form['#tree'] = TRUE;
+  
+  $tour = array();
+  
+  if($name && $tour = joyride_load($name)) {
+    dpm($tour);
+    backdrop_set_title($tour['title']);
+    $form['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title'),
+      '#default_value' => isset($tour['title']) ? $tour['title'] : '',
+    );
+    $form['config_name'] = array(
+      '#type' => 'value',
+      '#value' => $tour['config_name'],
+    );
+  }
+  elseif($name =='add') {
+    $form['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title'),
+      '#default_value' => isset($tour['title']) ? $tour['title'] : '',
+    );
+    $form['machine_name'] = array(
+      '#type' => 'machine_name',
+      '#default_value' => '',
+      '#maxlength' => 21,
+      '#machine_name' => array(
+        'exists' => 'menu_edit_menu_name_exists',
+        'source' => array('title'), 
+      ),
+    );
+    $form['exported'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Export'),
+    );
+    $form['editable'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Editable'),
+    );
+  }
+  else {
+    return array();
+  }
+  
+  $form['name'] = array(
+    '#type' => 'value',
+    '#value' => $name,
+  );
+  $form['delete'] = array(
+    '#markup' => theme('joyride_start_link'),
+  );
+  $form['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description'),
+    '#default_value' => isset($tour['description']) ? $tour['description'] : '',
+  );
+  $form['path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path'),
+    '#default_value' => isset($tour['path']) ? $tour['path'] : '',
+  );
+  $form['auto_start'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto Start'),
+    '#default_value' => isset($tour['auto_start']) ? $tour['auto_start'] : '',
+  );
+  $form['play_once'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Play Once'),
+    '#default_value' => isset($tour['play_once']) ? $tour['play_once'] : '',
+  );
+  $form['content'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('People coming to the picnic'),
+    // Set up the wrapper so that AJAX will be able to replace the fieldset.
+    '#prefix' => '<div id="steps-fieldset-wrapper">',
+    '#suffix' => '</div>',
+  );
+  // Build the fieldset with the proper number of names. We'll use
+  // $form_state['num_tours'] to determine the number of textfields to build.
+  if (empty($form_state['num_tours'])) {
+    if($name == 'add') {
+      $form_state['num_tours'] = 1;
+    }
+    else {
+      $form_state['num_tours'] = count($tour['content']);
+    }
+  }
+  for ($i = 0; $i < $form_state['num_tours']; $i++) {
+  $step = isset($tour['content'][$i]) ? $tour['content'][$i] : array();
+  $form['content'][$i]['header'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Header'),
+      '#default_value' => isset($step['header']) ? $step['header'] : '',
+    );
+    $form['content'][$i]['body'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Body'),
+      '#rows' => 2,
+      '#default_value' => isset($step['body']) ? $step['body'] : '',
+    );
+    $form['content'][$i]['target'] = array(
+      '#type' => 'textfield',
+      '#title' => t('target'),
+      '#default_value' => isset($step['target']) ? $step['target'] : '',
+    );
+    $form['content'][$i]['attributes']['data-button'] = array(
+      '#type' => 'textfield',
+      '#title' => t('data-button'),
+      '#default_value' => isset($step['data-button']) ? $step['data-button'] : '',
+    );
+    $form['content'][$i]['attributes']['custom-class'] = array(
+      '#type' => 'textfield',
+      '#title' => t('custom-class'),
+      '#default_value' => isset($step['custom_class']) ? $step['custom_class'] : '',
+    );
+    $form['content'][$i]['attributes']['data-options'] = array(
+      '#type' => 'textarea',
+      '#title' => t('data-options'),
+      '#rows' => 2,
+      '#default_value' => isset($step['data_options']) ? $step['data_options'] : '',
+    );
+    $form['content'][$i]['weight'] = array(
+      '#type' => 'weight',
+      '#title' => t('Weight'),
+      '#default_value' => $i,
+      '#delta' => 10,
+      '#title_display' => 'invisible',
+    );
+  }
+  $form['content']['add_more'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add one more'),
+    '#submit' => array('joyride_ui_add_one'),
+    // '#ajax' => array(
+      // 'callback' => 'joyride_ui_add_more_callback',
+      // 'wrapper' => 'steps-fieldset-wrapper',
+    // ),
+  );
+  dpm($form_state);
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save Changes'));
+  return $form;
+}
+function menu_edit_menu_name_exists($value) {
+  return FALSE;
+}
+
+/**
+ * Callback for both ajax-enabled buttons.
+ *
+ * Selects and returns the fieldset with the names in it.
+ */
+function joyride_ui_add_more_callback($form, $form_state) {
+  return $form['content'];
+}
+
+/**
+ * Submit handler for the "add-one-more" button.
+ *
+ * Increments the max counter and causes a rebuild.
+ */
+function joyride_ui_add_one($form, &$form_state) {
+  $form_state['num_tours']++;
+  $form_state['rebuild'] = TRUE;
+}
+
+
+function joyride_ui_edit_joyride_submit($form, &$form_state) {
+  dpm($form_state);
+  form_state_values_clean($form_state);
+  $name = $form_state['values']['name'];
+  
+  unset($form_state['values']['actions']);
+  unset($form_state['values']['name']);
+  
+  $data = $form_state['values'];
+  $tours = array();
+  
+  // This is a new tour being added.
+  if($name == 'add') {
+    // Its for export, so save it to a new config file. Name the file using the
+    // format 'tour.export.<machine_name>'
+    if($form_state['values']['exported']) {
+      $config = config('tour.exported.' . $form_state['values']['machine_name']);
+    }
+    // Its new, not for export. We save these in 'tour.tour.custom.json'.
+    else {
+      $config = config('tour.tour.custom');
+      $tours = $config->get('tours');
+    }
+  }
+  else {
+    $config = config($form_state['values']['config_name']);
+    $tours = $config->get('tours');
+  }
+  $tours[$form_state['values']['machine_name']] = $data;
+  dpm($tours);
+  $config->set('tours', $tours);
+  $config->save();
+  $form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
+}
+
+function theme_joyride_ui_edit_joyride($variables) {
+  $form = $variables['form'];
+  dpm($form);
+  $rows = array();
+  $output = '';
+  $output .= backdrop_render($form['title']);
+  if(isset($form['machine_name'])) {
+    $output .= backdrop_render($form['machine_name']);
+  }
+  $output .= backdrop_render($form['description']);
+  $output .= backdrop_render($form['path']);
+  $output .= backdrop_render($form['editable']);
+  $output .= backdrop_render($form['auto_start']);
+  $output .= backdrop_render($form['play_once']);
+  
+  $add_more = $form['content']['add_more'];
+  unset($form['content']['add_more']);
+  foreach (element_children($form['content']) as $id) {
+
+    $form['content'][$id]['weight']['#attributes']['class'] = array('joyride-ui-weight');
+    $rows[] = array(
+      'data' => array(
+        theme('joyride_content_row', $form['content'][$id]),
+      ),
+      'class' => array('draggable'),
+    );
+  }
+  unset($form['content']);
+
+  $header = array();
+
+  $table_id = 'example-items-table';
+
+  $output .= theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => $table_id),
+  ));
+  $output .= backdrop_render($form['exported']);
+  $output .= backdrop_render($add_more);
+  $output .= backdrop_render_children($form);
+
+  backdrop_add_tabledrag($table_id, 'order', 'sibling', 'example-item-weight');
+
+  return $output;
+}
+
+function theme_joyride_content_row($content) {
+    $row['header'] = backdrop_render($content['header']);
+    $row['body'] = backdrop_render($content['body']);
+    $row['target'] = backdrop_render($content['target']);
+    $rows = array($row);
+
+    if (!empty($rows)) {
+    $header = array(
+      t('Header'),
+      t('Body'),
+      t('CSS Target'),
+    );
+    $output = theme('table', array('header' => $header, 'rows' => $rows));
+    
+    $attributes = backdrop_render($content['data-button']);
+    $attributes .= backdrop_render($content['custom-class']);
+    $attributes .= backdrop_render($content['data-options']);
+    
+    backdrop_add_js(backdrop_get_path('module', 'joyride_ui') . '/joyride_ui.js');
+    $toggle = ' <a class="requirements-toggle" href="#">' . t('more') . '</a>';
+    $details = '<div class="text table-filter-text-source"> ' . $toggle . '</div>' . '<div class="requirements">' . $attributes . '</div>';
+
+    $output .= $details;
+    return $output;
+  }
+  else {
+    return t('There are no items in the queue.');
+  }
+}
+
+/**
+ * Implements hook_theme().
+ *
+ */
+function joyride_ui_theme() {
+  return array(
+    // Theme function for the 'simple' example.
+    'joyride_ui_edit_joyride' => array(
+      'render element' => 'form',
+    ),
+    'joyride_content_row' => array(
+      'render element' => NULL,
+    ),
+  );
+}

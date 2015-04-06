@@ -4,7 +4,6 @@
  * Implements hook_requirements().
  * Check installation requirements and do status reporting.
  *
- * @see http://api.drupalize.me/api/drupal/function/hook_requirements/7
  */
 function joyride_requirements($phase) {
   $requirements = array();
