@@ -10,16 +10,13 @@ function joyride_ui_menu() {
 
   $items['admin/config/user-interface/joyride'] = array(
     'title' => 'Joyride',
-    'page callback' => 'theme',
-    'page arguments' => array('joyride_demo'),
+    'page callback' => 'joyride_ui_list_joyrides',
     'access arguments' => array('access administration pages'),
     'type' => MENU_NORMAL_ITEM,
   );
 
   $items['admin/config/user-interface/joyride/ui'] = array(
     'title' => 'Joyride UI',
-    'page callback' => 'joyride_ui_list_joyrides',
-    //'page arguments' => array('joyride_demo'),
     'access arguments' => array('access administration pages'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
@@ -29,7 +26,14 @@ function joyride_ui_menu() {
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('joyride_ui_edit_joyride', 5),
     'access arguments' => array('access administration pages'),
-    'type' => MENU_LOCAL_TASK,
+  );
+  
+  $items['admin/config/user-interface/joyride/ui/add'] = array(
+    'title' => 'Add new tour',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('joyride_ui_edit_joyride', 5),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_ACTION,
   );
   
   $items['admin/config/user-interface/joyride/demo'] = array(
@@ -43,8 +47,6 @@ function joyride_ui_menu() {
 
   $items['admin/config/user-interface/joyride/demo/auto-start'] = array(
     'title' => 'Joyride Demo (Start tour automatically)',
-    'page callback' => 'theme',
-    'page arguments' => array('joyride_demo'),
     'access arguments' => array('access administration pages'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
@@ -57,15 +59,6 @@ function joyride_ui_menu() {
     'access arguments' => array('access administration pages'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 10,
-  );
-
-  $items['admin/config/user-interface/joyride/demo/play-once'] = array(
-    'title' => 'Joyride Demo (Play tour only once)',
-    'page callback' => 'theme',
-    'page arguments' => array('joyride_demo'),
-    'access arguments' => array('access administration pages'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 20,
   );
 
   return $items;
@@ -102,8 +95,11 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
   $tour = array();
   
   if($name && $tour = joyride_load($name)) {
-    dpm($tour);
     backdrop_set_title($tour['title']);
+    dpm($tour['content']);
+    backdrop_sort($tour['content'], array('weight' => SORT_NUMERIC));
+    dpm($tour['content']);
+
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -112,6 +108,18 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
     $form['config_name'] = array(
       '#type' => 'value',
       '#value' => $tour['config_name'],
+    );
+    $form['machine_name'] = array(
+      '#type' => 'value',
+      '#value' => $tour['machine_name'],
+    );
+    $form['editable'] = array(
+      '#type' => 'value',
+      '#value' => $tour['editable'],
+    );
+    $form['exported'] = array(
+      '#type' => 'value',
+      '#value' => $tour['exported'],
     );
   }
   elseif($name =='add') {
@@ -146,18 +154,16 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
     '#type' => 'value',
     '#value' => $name,
   );
-  $form['delete'] = array(
-    '#markup' => theme('joyride_start_link'),
-  );
-  $form['description'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Description'),
-    '#default_value' => isset($tour['description']) ? $tour['description'] : '',
-  );
   $form['path'] = array(
     '#type' => 'textfield',
     '#title' => t('Path'),
     '#default_value' => isset($tour['path']) ? $tour['path'] : '',
+  );
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#rows' => 3,
+    '#default_value' => isset($tour['description']) ? $tour['description'] : '',
   );
   $form['auto_start'] = array(
     '#type' => 'checkbox',
@@ -223,7 +229,7 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
     $form['content'][$i]['weight'] = array(
       '#type' => 'weight',
       '#title' => t('Weight'),
-      '#default_value' => $i,
+      '#default_value' => isset($step['weight']) ? $step['weight'] : 10,
       '#delta' => 10,
       '#title_display' => 'invisible',
     );
@@ -237,7 +243,6 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
       // 'wrapper' => 'steps-fieldset-wrapper',
     // ),
   );
-  dpm($form_state);
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save Changes'));
   return $form;
@@ -295,7 +300,6 @@ function joyride_ui_edit_joyride_submit($form, &$form_state) {
     $tours = $config->get('tours');
   }
   $tours[$form_state['values']['machine_name']] = $data;
-  dpm($tours);
   $config->set('tours', $tours);
   $config->save();
   $form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
@@ -303,36 +307,37 @@ function joyride_ui_edit_joyride_submit($form, &$form_state) {
 
 function theme_joyride_ui_edit_joyride($variables) {
   $form = $variables['form'];
-  dpm($form);
   $rows = array();
   $output = '';
   $output .= backdrop_render($form['title']);
   if(isset($form['machine_name'])) {
     $output .= backdrop_render($form['machine_name']);
   }
-  $output .= backdrop_render($form['description']);
   $output .= backdrop_render($form['path']);
+  $output .= backdrop_render($form['description']);
   $output .= backdrop_render($form['editable']);
   $output .= backdrop_render($form['auto_start']);
   $output .= backdrop_render($form['play_once']);
   
   $add_more = $form['content']['add_more'];
   unset($form['content']['add_more']);
+  
   foreach (element_children($form['content']) as $id) {
 
     $form['content'][$id]['weight']['#attributes']['class'] = array('joyride-ui-weight');
     $rows[] = array(
       'data' => array(
         theme('joyride_content_row', $form['content'][$id]),
+        backdrop_render($form['content'][$id]['weight']),
       ),
       'class' => array('draggable'),
     );
   }
   unset($form['content']);
 
-  $header = array();
+  $header = array(t('Steps'), t('Weight'));
 
-  $table_id = 'example-items-table';
+  $table_id = 'joyride-content';
 
   $output .= theme('table', array(
     'header' => $header,
@@ -343,7 +348,7 @@ function theme_joyride_ui_edit_joyride($variables) {
   $output .= backdrop_render($add_more);
   $output .= backdrop_render_children($form);
 
-  backdrop_add_tabledrag($table_id, 'order', 'sibling', 'example-item-weight');
+  backdrop_add_tabledrag($table_id, 'order', 'sibling', 'joyride-ui-weight');
 
   return $output;
 }
@@ -355,11 +360,7 @@ function theme_joyride_content_row($content) {
     $rows = array($row);
 
     if (!empty($rows)) {
-    $header = array(
-      t('Header'),
-      t('Body'),
-      t('CSS Target'),
-    );
+    $header = array();
     $output = theme('table', array('header' => $header, 'rows' => $rows));
     
     $attributes = backdrop_render($content['data-button']);

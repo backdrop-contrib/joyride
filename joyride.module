@@ -85,7 +85,6 @@ function joyride_init() {
 function joyride_run_tour($name) {
   $library = libraries_load('joyride');
   $library_loaded = $library && !empty($library['loaded']);
-
   drupal_add_library('system', 'jquery.cookie');
 
   $js_name = 'jquery.joyride.js';
@@ -140,7 +139,7 @@ function joyride_format_content($data) {
     }
     $list .= '<li ' . $attributes . '>';
     $list .= '<h2>' . $step['header'] . '</h2>';
-    $list .= '<div>' . $step['body'] . '</div>';
+    $list .= '<div class="joyride-content">' . $step['body'] . '</div>';
     $list .= '</li>';
   }
   return $list;
