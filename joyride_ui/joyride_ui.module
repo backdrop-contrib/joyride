@@ -141,9 +141,7 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
   
   if($name && $tour = joyride_load($name)) {
     backdrop_set_title($tour['title']);
-    dpm($tour['content']);
     backdrop_sort($tour['content'], array('weight' => SORT_NUMERIC));
-    dpm($tour['content']);
 
     $form['title'] = array(
       '#type' => 'textfield',
@@ -231,7 +229,6 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
   if (empty($form_state['content'])) {
     if($name == 'add') {
       $form_state['content'][0] = joyride_ui_get_default_step();
-  dpm($form_state['content']);
     }
     else {
       $form_state['content'] = $tour['content'];
@@ -320,7 +317,6 @@ function joyride_ui_add_more_callback($form, $form_state) {
  */
 function joyride_ui_add_one($form, &$form_state) {
   $form_state['content'][] = joyride_ui_get_default_step();
-  dpm($form_state);
   $form_state['rebuild'] = TRUE;
 }
 
@@ -339,7 +335,6 @@ function joyride_ui_get_default_step() {
 }
 
 function joyride_ui_edit_joyride_validate($form, &$form_state) {
-  dpm($form_state);
   form_state_values_clean($form_state);
   
   unset($form_state['values']['actions']);
@@ -363,14 +358,12 @@ function joyride_ui_edit_joyride_validate($form, &$form_state) {
 
     unset($content['delete']);
   }
-  dpm($form_state);
 } 
 
 
 function joyride_ui_edit_joyride_submit($form, &$form_state) {  
   $name = $form_state['values']['name'];
   unset($form_state['values']['name']);
-  dpm($form_state);
   $data = $form_state['values'];
   $tours = array();
   
@@ -394,7 +387,7 @@ function joyride_ui_edit_joyride_submit($form, &$form_state) {
   $tours[$form_state['values']['machine_name']] = $data;
   $config->set('tours', $tours);
   $config->save();
-  //$form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
+  $form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
 }
 
 function theme_joyride_ui_edit_joyride($variables) {
