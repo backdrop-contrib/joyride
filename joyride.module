@@ -101,6 +101,7 @@ function joyride_run_tour($name) {
   }
 
   backdrop_add_js(backdrop_get_path('module', 'joyride') . '/inc/js/joyride_context.js');
+  backdrop_add_css(backdrop_get_path('module', 'joyride') . '/inc/joyride_context.css');
   
   $tour = joyride_load($name);
 
