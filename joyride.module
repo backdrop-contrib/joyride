@@ -132,7 +132,7 @@ function joyride_format_content($data) {
     // blank, we need to first change the tag to data-id or data-class, then 
     // remove the '#' or '.'
     // If blank, remove it.
-    if($step['target'] != '') {
+    if(isset($step['target']) && $step['target'] != '') {
       $tag = ($step['target'][0] == '#') ? 'data-id' : 'data-class';
       $attr = substr($step['target'], 1);
       $attributes .= $tag . '="' . $attr . '" ';
