@@ -1,29 +1,50 @@
-Joyride JQuery for Drupal Site Tours
+Joyride
+=======
 
 Description
+-----------
 
-This module provides Drupal integration with "Zurb's Joyride Jquery plugin":https://github.com/zurb/joyride in order to provide a tour of different html elements on your Drupal site. Drupal integration is done via the "Context module":http://drupal.org/project/context, which provides a way to control conditional calling of the joyride plugin and copy-and-paste method for adding specific tour code. 
+This module provides Backdrop integration with "Zurb's Joyride Jquery plugin":https://github.com/zurb/joyride in order to provide a tour of different html elements on your Backdrop site.
 
 You can view a demo of how Joyride works here: http://www.zurb.com/playground/jquery-joyride-feature-tour-plugin
 
-h2. Drupal Installation
+Backdrop Installation
+---------------------
 
-1. Download the current, stable version from Drupal.org at http://drupal.org/project/joyride
-2. Download the current of Joyride jquery plugins at https://github.com/zurb/joyride and place in the sites/all/libraries/joyride
-3. Rename css and js files to remove version specific designations so you are then have sites/all/libraries/joyride/jquery.joyride.js and joyride.css
-4. Enable the Joyride module at admin/modules (make sure you have context and context ui installed and enabled too). 
-5. Check that module is working by viewing the demo pages here: admin/config/user-interface/joyride. (You should see three examples that go through the help page)
+1. Download the current, stable version from https://github.com/backdrop-contrib/joyride
+2. Download the current of Joyride jquery plugins at https://github.com/zurb/joyride and place in the ./libraries
+4. Enable the Joyride module and libraries module
+5. Enable the Joyride UI module to view the demos and edit/add/delete tours if needed
+6. Check that module is working by viewing the demo pages here: admin/config/user-interface/joyride/demo.
 
-h2. Usage
+Usage
+-----
 
-If the module and dependencies are working, then you should be able to review the example context pages under "Joyride" in admin/structure/context. Current the module provides three settings: auto trigger, manual trigger via a link or autotrigger once. You can review these examples to understand how you can create custom tours. 
+A full description of Jquery Joyride Tour features can be found at: 
+http://www.zurb.com/playground/jquery-joyride-feature-tour-plugin
+The Joyride module reads tours stored as Backdrop config files and loads the 
+necessary JQuery and CSS needed to provide guided tours. See the included config
+for an example to the storage format.
 
-A full description of Jquery Joyride Tour creation can be found at: http://www.zurb.com/playground/jquery-joyride-feature-tour-plugin
+The main Joyride module will detect all existing tour config files if they are
+named in the format 'tour.<module>.<any_id>'. 
 
-h2. Issues, Bugs and Feature Requests
+- Tours with 'auto_start = 1' set will start on navigating to the tour path.
+- Otherwise tours can be launched by providing a link created in the format
+<?php print theme('joyride_start_link'); ?>
 
-Issues, Bugs and Feature Requests should be made on the main project page at http://drupal.org/project/joyride. Alternatively the code for this project is available on github at: https://github.com/markwk/joyride.
+LICENSE
+---------------    
 
-h2. Creators
+This project is GPL v2 software. See the LICENSE.txt file in this directory 
+for complete text.
 
-This module was created by Mark Koester ("Drupal user markwk":http://drupal.org/user/1094790/) at "Int3c.com":http://int3c.com and sponsored by "MicroEntrepreneur.me":http://microentrepreneur.me 
+CURRENT MAINTAINERS
+---------------    
+
+- Andy Shillingford (https://github.com/docwilmot/)
+
+CREDITS   
+--------------- 
+
+This module was originally created for Drupal by Mark Koester ("Drupal user markwk":http://drupal.org/user/1094790/) at "Int3c.com":http://int3c.com and sponsored by "MicroEntrepreneur.me":http://microentrepreneur.me 

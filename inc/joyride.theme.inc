@@ -10,5 +10,5 @@ function joyride_preprocess_joyride_start_link(&$vars) {
 
   if(empty($vars['link_title'])) $vars['link_title'] = t('Start the tour!');
 
-  drupal_add_js(drupal_get_path('module', 'joyride') . '/inc/js/joyride_start_link.js');
+  backdrop_add_js(backdrop_get_path('module', 'joyride') . '/inc/js/joyride_start_link.js');
 }

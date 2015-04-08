@@ -29,7 +29,7 @@ function joyride_ui_menu() {
   );
 	$items['admin/config/user-interface/joyride/ui/%/delete'] = array(
 		'title' => 'Delete tour',
-		'page callback' => 'drupal_get_form',
+		'page callback' => 'backdrop_get_form',
 		'page arguments' => array('joyride_ui_delete_joyride', 5),
     'access arguments' => array('access administration pages'),
 		'type' => MENU_CALLBACK,
@@ -129,7 +129,7 @@ function joyride_ui_delete_joyride_submit($form, &$form_state) {
   $config->clear('tours.' . $form_state['values']['name']);
   $config->save();
 
-	drupal_set_message('You confirmed item ' . $form_state['values']['name'] . '.');
+	backdrop_set_message('You confirmed item ' . $form_state['values']['name'] . '.');
 	$form_state['redirect'] = 'admin/config/user-interface/joyride';
 }
 

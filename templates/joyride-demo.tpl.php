@@ -1,6 +1,6 @@
 <div class="joyride-demo-page">
-  <?php drupal_add_css(drupal_get_path('module', 'joyride') . '/inc/css/demo.css'); ?>
-  <?php drupal_add_css(drupal_get_path('module', 'joyride') . '/inc/css/demo-mobile.css'); ?>
+  <?php backdrop_add_css(backdrop_get_path('module', 'joyride') . '/inc/css/demo.css'); ?>
+  <?php backdrop_add_css(backdrop_get_path('module', 'joyride') . '/inc/css/demo-mobile.css'); ?>
   <div class="container">
     <div class="row">
       <div class="twelve columns">
@@ -33,7 +33,7 @@
           fermentum.</p>
       </div>
       <div class="six columns">
-        <img id="numero5" src="<?php print url(drupal_get_path('module', 'joyride') . '/inc/css/images/430x200.gif'); ?>" style="width: 430px; height: 200px;">
+        <img id="numero5" src="<?php print url(backdrop_get_path('module', 'joyride') . '/inc/css/images/430x200.gif'); ?>" style="width: 430px; height: 200px;">
       </div>
     </div>
 
@@ -53,7 +53,7 @@
 
     <div class="row">
       <div class="four columns">
-        <img src="<?php print url(drupal_get_path('module', 'joyride') . '/inc/css/images/280x120.gif'); ?>" style="width: 430px; height: 200px;">
+        <img src="<?php print url(backdrop_get_path('module', 'joyride') . '/inc/css/images/280x120.gif'); ?>" style="width: 430px; height: 200px;">
       </div>
       <div class="eight columns">
         <h3 id="numero2">Customize Each Stop Along the Way</h3>
@@ -75,7 +75,7 @@
           fermentum.</p>
       </div>
       <div class="six columns">
-        <img src="<?php print url(drupal_get_path('module', 'joyride') . '/inc/css/images/430x200.gif'); ?>" style="width: 430px; height: 200px;">
+        <img src="<?php print url(backdrop_get_path('module', 'joyride') . '/inc/css/images/430x200.gif'); ?>" style="width: 430px; height: 200px;">
       </div>
     </div>
 

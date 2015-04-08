@@ -6,7 +6,7 @@ define('JOYRIDE_LIBRARY_VERSION', '2.0.3');
  * Implements hook_libraries_info().
  * Return information about external libraries.
  *
- * @see http://drupal.org/documentation/modules/libraries
+ * @see http://backdrop.org/documentation/modules/libraries
  */
 function joyride_libraries_info() {
   $libraries['joyride'] = array(
@@ -46,7 +46,7 @@ function joyride_version($library, $options) {
     'cols' => 200,
   );
 
-  $file = DRUPAL_ROOT . '/' . $library['library path'] . '/' . $options['file'];
+  $file = BACKDROP_ROOT . '/' . $library['library path'] . '/' . $options['file'];
   if (empty($options['file']) || !file_exists($file)) {
     return;
   }
@@ -85,13 +85,13 @@ function joyride_init() {
 function joyride_run_tour($name) {
   $library = libraries_load('joyride');
   $library_loaded = $library && !empty($library['loaded']);
-  drupal_add_library('system', 'jquery.cookie');
+  backdrop_add_library('system', 'jquery.cookie');
 
   $js_name = 'jquery.joyride.js';
   $base_path = 'sites/all/libraries/joyride';
 
   if (!$library_loaded) {
-    drupal_set_message(t('Can\'t load Joyride library. Please download !url jQuery plugin and extract it to @path, so @js can be found at @full_path. Also please purge version info from Joyride file names (both .js and .css)', array(
+    backdrop_set_message(t('Can\'t load Joyride library. Please download !url jQuery plugin and extract it to @path, so @js can be found at @full_path. Also please purge version info from Joyride file names (both .js and .css)', array(
       '!url' => l(t('Zurb Joyride'), 'https://github.com/zurb/joyride'),
       '@path' => $base_path,
       '@js' => $js_name,
@@ -100,7 +100,7 @@ function joyride_run_tour($name) {
     return FALSE;
   }
 
-  drupal_add_js(drupal_get_path('module', 'joyride') . '/inc/js/joyride_context.js');
+  backdrop_add_js(backdrop_get_path('module', 'joyride') . '/inc/js/joyride_context.js');
   
   $tour = joyride_load($name);
 
@@ -114,7 +114,7 @@ function joyride_run_tour($name) {
       'play_once' => $tour['play_once'],
     ),
   );
-  drupal_add_js($js_settings, 'setting');
+  backdrop_add_js($js_settings, 'setting');
 }
 
 
@@ -212,7 +212,7 @@ function joyride_theme($existing, $type, $theme, $path) {
  */
 function joyride_enable() {
   // We need this to make context detect new reaction handler
-  drupal_flush_all_caches();
+  backdrop_flush_all_caches();
 }
 
 /**
