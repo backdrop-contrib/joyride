@@ -193,10 +193,6 @@ function joyride_theme($existing, $type, $theme, $path) {
       'variables' => array(),
       'template' => 'templates/joyride-help',
     ),
-    'joyride_demo' => array(
-      'variables' => array(),
-      'template' => 'templates/joyride-demo',
-    ),
     'joyride_start_link' => array(
       'variables' => array('link_title' => NULL, 'options' => array()),
       'template' => 'templates/joyride-start-link',
@@ -248,19 +244,3 @@ function joyride_block_view($delta = '') {
   return $block;
 }
 
- /**
- * Implements hook_config_info().
- * Provides two dtour files: one with default tours for demo purposes and one 
- * which is blank, for storing user-created tours.
- */
-function joyride_config_info() {
-  $prefixes['tour.tour.default'] = array(
-    'label' => t('Joyride Default Tours'),
-    'group' => t('Joyride'),
-  );
-  $prefixes['tour.tour.custom'] = array(
-    'label' => t('Joyride Custom Tours'),
-    'group' => t('Joyride'),
-  );
-  return $prefixes;
-}
