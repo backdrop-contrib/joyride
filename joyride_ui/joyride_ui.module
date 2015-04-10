@@ -74,7 +74,7 @@ function joyride_ui_list_joyrides() {
   $items = joyride_load_all();
   $rows = array();
   foreach ($items as $name => $item) {
-    $row['name'] = $name;
+    $row['title'] = $item['title'];
     $row['description'] = $item['description'];
     $row['auto_start'] = $item['auto_start'] ? 'TRUE' : 'FALSE';
     $row['edit'] = ($item['exported'] && !$item['editable']) ? 'Not editable' : l('edit', 'admin/config/user-interface/joyride/ui/' . $name);
@@ -83,7 +83,7 @@ function joyride_ui_list_joyrides() {
   }
   if (!empty($rows)) {
     $header = array(
-      t('Tour name'),
+      t('Title'),
       t('Description'),
       t('Autostart'),
       t('Edit link'),
