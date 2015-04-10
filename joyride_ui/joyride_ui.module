@@ -130,6 +130,7 @@ function joyride_ui_delete_joyride_submit($form, &$form_state) {
   $config->save();
 
 	backdrop_set_message('You confirmed item ' . $form_state['values']['name'] . '.');
+  cache_flush('cache');
 	$form_state['redirect'] = 'admin/config/user-interface/joyride';
 }
 
@@ -387,6 +388,7 @@ function joyride_ui_edit_joyride_submit($form, &$form_state) {
   $tours[$form_state['values']['machine_name']] = $data;
   $config->set('tours', $tours);
   $config->save();
+  cache_flush('cache');
   $form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
 }
 

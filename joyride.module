@@ -150,22 +150,31 @@ function joyride_format_content($data) {
 /**
  * Callback function for loading all bootstrap tours in an array of 'btid' => 'name' format.
  */
-function joyride_load_all($include_disabled = FALSE) {
-  // Find all modules providing tours.
-  $all_tours = config_get_names_with_prefix('tour');
-  $tours = array();
-  // Go through and load each config
-  foreach($all_tours as $tour) {
-    $config = config($tour);
-    // Load the 'tours' config key
-    $settings = $config->get('tours');
-    foreach($settings as $name => $setting) {
-      $setting['config_name'] = $tour;
-      $tours[$name] = $setting;
+function joyride_load_all() {
+  $tours = &backdrop_static(__FUNCTION__);
+  if (!isset($tours)) {
+    if ($cache = cache_get('joyride_tours')) {
+      $tours = $cache->data;
+    }
+    else {
+      // Find all modules providing tours.
+      $all_tours = config_get_names_with_prefix('tour');
+      $tours = array();
+      // Go through and load each config
+      foreach($all_tours as $tour) {
+        $config = config($tour);
+        // Load the 'tours' config key
+        $settings = $config->get('tours');
+        foreach($settings as $name => $setting) {
+          $setting['config_name'] = $tour;
+          $tours[$name] = $setting;
+        }
+      }
+      cache_set('joyride_tours', $tours, 'cache');
     }
   }
-  
   return $tours;
+  
 }
 
 /**
@@ -200,16 +209,6 @@ function joyride_theme($existing, $type, $theme, $path) {
       'file' => 'inc/joyride.theme.inc',
     ),
   );
-}
-
-/**
- * Implements hook_enable().
- * Perform necessary actions after module is enabled.
- *
- */
-function joyride_enable() {
-  // We need this to make context detect new reaction handler
-  backdrop_flush_all_caches();
 }
 
 /**
