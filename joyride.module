@@ -164,17 +164,14 @@ function joyride_load_all() {
       foreach($all_tours as $tour) {
         $config = config($tour);
         // Load the 'tours' config key
-        $settings = $config->get('tours');
-        foreach($settings as $name => $setting) {
-          $setting['config_name'] = $tour;
-          $tours[$name] = $setting;
-        }
+        $setting = $config->get('tour');
+        $setting['config_name'] = $tour;
+        $tours[$setting['machine_name']] = $setting;
       }
       cache_set('joyride_tours', $tours, 'cache');
     }
   }
   return $tours;
-  
 }
 
 /**
