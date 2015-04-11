@@ -71,9 +71,11 @@ function joyride_version($library, $options) {
 function joyride_init() {
   $tours = joyride_load_all();
   foreach($tours as $name => $tour) {
+    if($tour['enabled']) {
     $path = $tour['path'];
-    if ($path == current_path() || $path == request_path() || ($path == '<front>' && request_path() == '')) {
-      joyride_run_tour($name);
+      if ($path == current_path() || $path == request_path() || ($path == '<front>' && request_path() == '')) {
+        joyride_run_tour($name);
+      }
     }
   }
 }

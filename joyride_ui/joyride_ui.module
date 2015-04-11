@@ -80,11 +80,14 @@ function joyride_ui_list_joyrides() {
   $items = joyride_load_all();
   $rows = array();
   foreach ($items as $name => $item) {
+    // Set variable for enabled state.
+    $state = $item['enabled'] ? 'Enabled' : 'Disabled';
+    
     $row['title'] = $item['title'];
     $row['description'] = $item['description'];
     $row['auto_start'] = $item['auto_start'] ? 'TRUE' : 'FALSE';
     $row['edit'] = (!$item['editable']) ? 'Not editable' : l('edit', 'admin/config/user-interface/joyride/ui/' . $name);
-    $row['disable'] = l('disable', 'admin/config/user-interface/joyride/ui/' . $name . '/disable');
+    $row['disable'] = t("!state (!url)", array('!state' => $state, '!url' => l(t('change'), 'admin/config/user-interface/joyride/ui/' . $name . '/disable')));
     $rows[] = $row;
   }
   if (!empty($rows)) {
@@ -105,21 +108,21 @@ function joyride_ui_list_joyrides() {
 
 
 function joyride_ui_disable_joyride($form, &$form_state, $name) {
+  $tour = joyride_load($name);
 	$form = array();
-	$form['name'] = array(
+	$form['tour'] = array(
 		'#type' => 'value',
-		'#value' => $name,
+		'#value' => $tour,
 	);
-	return confirm_form(
-		$form,
-		t('Are you sure you want to disable this tour?'),
-		'admin/config/user-interface/joyride',
-		t(''),
-		t('Disable'),
-		t('Cancel')
-	);
-
-	return $form;
+  $set_enabled_status = $tour['enabled'] ? 'disable' : 'enable';
+  return confirm_form(
+    $form,
+    t("Are you sure you want to !disable this tour?", array('!disable' => $set_enabled_status)),
+    'admin/config/user-interface/joyride',
+    t(''),
+    t('Disable'),
+    t('Cancel')
+  );
 }
 
 /**
@@ -128,14 +131,15 @@ function joyride_ui_disable_joyride($form, &$form_state, $name) {
  * clickin on cancel, the user goes back to the $path
  */
 function joyride_ui_disable_joyride_submit($form, &$form_state) {
-  $items = joyride_load_all();
-  $tour = $items[$form_state['values']['name']];
+  //$items = joyride_load_all();
+  $tour = $form['tour']['#value'];
 
+  $set_enabled_status = $tour['enabled'] ? 0 : 1;
   $config = config($tour['config_name']);
-  $config->set('tour.enabled', 0);
+  $config->set('tour.enabled', $set_enabled_status);
   $config->save();
 
-	backdrop_set_message('You disabled ' . $form_state['values']['title'] . '.');
+	backdrop_set_message('Tour ' . $tour['title'] . ' settings saved.');
   cache_flush('cache');
 	$form_state['redirect'] = 'admin/config/user-interface/joyride';
 }
