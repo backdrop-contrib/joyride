@@ -1,5 +1,11 @@
 <?php
 
+//todos
+// change config scheme to tour per file and delete export stuff.
+// add alter/hooks
+// change demo page
+
+
 /**
  * Implements hook_menu().
  *
@@ -27,10 +33,10 @@ function joyride_ui_menu() {
     'page arguments' => array('joyride_ui_edit_joyride', 5),
     'access arguments' => array('access administration pages'),
   );
-	$items['admin/config/user-interface/joyride/ui/%/delete'] = array(
-		'title' => 'Delete tour',
+	$items['admin/config/user-interface/joyride/ui/%/disable'] = array(
+		'title' => 'Disable tour',
 		'page callback' => 'backdrop_get_form',
-		'page arguments' => array('joyride_ui_delete_joyride', 5),
+		'page arguments' => array('joyride_ui_disable_joyride', 5),
     'access arguments' => array('access administration pages'),
 		'type' => MENU_CALLBACK,
 	);  
@@ -74,11 +80,14 @@ function joyride_ui_list_joyrides() {
   $items = joyride_load_all();
   $rows = array();
   foreach ($items as $name => $item) {
+    // Set variable for enabled state.
+    $state = $item['enabled'] ? 'Enabled' : 'Disabled';
+    
     $row['title'] = $item['title'];
     $row['description'] = $item['description'];
     $row['auto_start'] = $item['auto_start'] ? 'TRUE' : 'FALSE';
-    $row['edit'] = ($item['exported'] && !$item['editable']) ? 'Not editable' : l('edit', 'admin/config/user-interface/joyride/ui/' . $name);
-    $row['delete'] = ($item['exported']) ? 'Delete manually' : l('delete', 'admin/config/user-interface/joyride/ui/' . $name . '/delete');
+    $row['edit'] = (!$item['editable']) ? 'Not editable' : l('edit', 'admin/config/user-interface/joyride/ui/' . $name);
+    $row['disable'] = t("!state (!url)", array('!state' => $state, '!url' => l(t('change'), 'admin/config/user-interface/joyride/ui/' . $name . '/disable')));
     $rows[] = $row;
   }
   if (!empty($rows)) {
@@ -87,7 +96,7 @@ function joyride_ui_list_joyrides() {
       t('Description'),
       t('Autostart'),
       t('Edit link'),
-      t('Delete link'),
+      t('Disable'),
     );
     $output = theme('table', array('header' => $header, 'rows' => $rows));
     return $output;
@@ -98,22 +107,22 @@ function joyride_ui_list_joyrides() {
 }
 
 
-function joyride_ui_delete_joyride($form, &$form_state, $name) {
+function joyride_ui_disable_joyride($form, &$form_state, $name) {
+  $tour = joyride_load($name);
 	$form = array();
-	$form['name'] = array(
+	$form['tour'] = array(
 		'#type' => 'value',
-		'#value' => $name,
+		'#value' => $tour,
 	);
-	return confirm_form(
-		$form,
-		t('Are you sure you want to delete this tour?'),
-		'admin/config/user-interface/joyride',
-		t('This action cannot be undone.'),
-		t('Delete'),
-		t('Cancel')
-	);
-
-	return $form;
+  $set_enabled_status = $tour['enabled'] ? 'disable' : 'enable';
+  return confirm_form(
+    $form,
+    t("Are you sure you want to !disable this tour?", array('!disable' => $set_enabled_status)),
+    'admin/config/user-interface/joyride',
+    t(''),
+    t('Disable'),
+    t('Cancel')
+  );
 }
 
 /**
@@ -121,15 +130,16 @@ function joyride_ui_delete_joyride($form, &$form_state, $name) {
  * this function is invoked only when the user clicks confirm button
  * clickin on cancel, the user goes back to the $path
  */
-function joyride_ui_delete_joyride_submit($form, &$form_state) {
-  $items = joyride_load_all();
-  $tour = $items[$form_state['values']['name']];
+function joyride_ui_disable_joyride_submit($form, &$form_state) {
+  //$items = joyride_load_all();
+  $tour = $form['tour']['#value'];
 
+  $set_enabled_status = $tour['enabled'] ? 0 : 1;
   $config = config($tour['config_name']);
-  $config->clear('tours.' . $form_state['values']['name']);
+  $config->set('tour.enabled', $set_enabled_status);
   $config->save();
 
-	backdrop_set_message('You confirmed item ' . $form_state['values']['name'] . '.');
+	backdrop_set_message('Tour ' . $tour['title'] . ' settings saved.');
   cache_flush('cache');
 	$form_state['redirect'] = 'admin/config/user-interface/joyride';
 }
@@ -161,10 +171,6 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
       '#type' => 'value',
       '#value' => $tour['editable'],
     );
-    $form['exported'] = array(
-      '#type' => 'value',
-      '#value' => $tour['exported'],
-    );
   }
   elseif($name =='add') {
     $form['title'] = array(
@@ -180,10 +186,6 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
         'exists' => 'joyride_machine_name_exists',
         'source' => array('title'), 
       ),
-    );
-    $form['exported'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Export'),
     );
     $form['editable'] = array(
       '#type' => 'checkbox',
@@ -219,6 +221,11 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
     '#type' => 'checkbox',
     '#title' => t('Play Once'),
     '#default_value' => isset($tour['play_once']) ? $tour['play_once'] : '',
+  );
+  $form['enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enabled'),
+    '#default_value' => isset($tour['enabled']) ? $tour['enabled'] : 1,
   );
   $form['content'] = array(
     '#type' => 'fieldset',
@@ -365,28 +372,21 @@ function joyride_ui_edit_joyride_validate($form, &$form_state) {
 function joyride_ui_edit_joyride_submit($form, &$form_state) {  
   $name = $form_state['values']['name'];
   unset($form_state['values']['name']);
+  
   $data = $form_state['values'];
-  $tours = array();
+  $tour = array();
   
   // This is a new tour being added.
   if($name == 'add') {
-    // Its for export, so save it to a new config file. Name the file using the
-    // format 'tour.export.<machine_name>'
-    if($form_state['values']['exported']) {
-      $config = config('tour.exported.' . $form_state['values']['machine_name']);
-    }
-    // Its new, not for export. We save these in 'tour.tour.custom.json'.
-    else {
-      $config = config('tour.tour.custom');
-      $tours = $config->get('tours');
-    }
+    $config = config('tour.tour.' . $form_state['values']['machine_name']);
+    //$tours = $config->get('tours');
   }
   else {
     $config = config($form_state['values']['config_name']);
-    $tours = $config->get('tours');
+    //$tour = $config->get('tour');
   }
-  $tours[$form_state['values']['machine_name']] = $data;
-  $config->set('tours', $tours);
+  //$tours[$form_state['values']['machine_name']] = $data;
+  $config->set('tour', $data);
   $config->save();
   cache_flush('cache');
   $form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
@@ -402,6 +402,7 @@ function theme_joyride_ui_edit_joyride($variables) {
   }
   $output .= backdrop_render($form['path']);
   $output .= backdrop_render($form['description']);
+  $output .= backdrop_render($form['enabled']);
   $output .= backdrop_render($form['editable']);
   $output .= backdrop_render($form['auto_start']);
   $output .= backdrop_render($form['play_once']);
@@ -433,7 +434,6 @@ function theme_joyride_ui_edit_joyride($variables) {
     'attributes' => array('id' => $table_id),
   ));
   $output .= backdrop_render($add_more);
-  $output .= backdrop_render($form['exported']);
   $output .= backdrop_render_children($form);
 
   backdrop_add_tabledrag($table_id, 'order', 'sibling', 'joyride-ui-weight');

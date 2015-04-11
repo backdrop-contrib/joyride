@@ -71,9 +71,11 @@ function joyride_version($library, $options) {
 function joyride_init() {
   $tours = joyride_load_all();
   foreach($tours as $name => $tour) {
+    if($tour['enabled']) {
     $path = $tour['path'];
-    if ($path == current_path() || $path == request_path() || ($path == '<front>' && request_path() == '')) {
-      joyride_run_tour($name);
+      if ($path == current_path() || $path == request_path() || ($path == '<front>' && request_path() == '')) {
+        joyride_run_tour($name);
+      }
     }
   }
 }
@@ -164,17 +166,14 @@ function joyride_load_all() {
       foreach($all_tours as $tour) {
         $config = config($tour);
         // Load the 'tours' config key
-        $settings = $config->get('tours');
-        foreach($settings as $name => $setting) {
-          $setting['config_name'] = $tour;
-          $tours[$name] = $setting;
-        }
+        $setting = $config->get('tour');
+        $setting['config_name'] = $tour;
+        $tours[$setting['machine_name']] = $setting;
       }
       cache_set('joyride_tours', $tours, 'cache');
     }
   }
   return $tours;
-  
 }
 
 /**
