@@ -153,7 +153,7 @@ function joyride_format_content($data) {
 
 
 /**
- * Callback function for loading all bootstrap tours in an array of 'btid' => 'name' format.
+ * Callback function for loading all tours.
  */
 function joyride_load_all() {
   $tours = &backdrop_static(__FUNCTION__);
