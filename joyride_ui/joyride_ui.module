@@ -1,10 +1,6 @@
 <?php
 
-//todos
-// change config scheme to tour per file and delete export stuff.
-// add alter/hooks
-// change demo page
-
+// add enabled to defaults
 
 /**
  * Implements hook_menu().
@@ -76,6 +72,11 @@ function joyride_ui_menu() {
   return $items;
 }
 
+/**
+ * Menu callback.
+ * Returns an administrative overview of all tours.
+ *
+ */
 function joyride_ui_list_joyrides() {
   $items = joyride_load_all();
   $rows = array();
@@ -106,7 +107,11 @@ function joyride_ui_list_joyrides() {
   }
 }
 
-
+/**
+ * Menu callback.
+ * Returns the confirm form to disable a tour.
+ *
+ */
 function joyride_ui_disable_joyride($form, &$form_state, $name) {
   $tour = joyride_load($name);
 	$form = array();
@@ -126,12 +131,11 @@ function joyride_ui_disable_joyride($form, &$form_state, $name) {
 }
 
 /**
- * submit handler for the example_delete
- * this function is invoked only when the user clicks confirm button
- * clickin on cancel, the user goes back to the $path
+ * Submit handler for joyride_ui_disable_joyride.
+ * This function is invoked only when the user clicks confirm button
+ * clickin on cancel, the user goes back to the $path.
  */
 function joyride_ui_disable_joyride_submit($form, &$form_state) {
-  //$items = joyride_load_all();
   $tour = $form['tour']['#value'];
 
   $set_enabled_status = $tour['enabled'] ? 0 : 1;
@@ -144,7 +148,10 @@ function joyride_ui_disable_joyride_submit($form, &$form_state) {
 	$form_state['redirect'] = 'admin/config/user-interface/joyride';
 }
 
-
+/**
+ * Returns a form to edit a tour.
+ *
+ */
 function joyride_ui_edit_joyride($form, &$form_state, $name) {
   $form['#tree'] = TRUE;
   
@@ -200,10 +207,12 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
     '#type' => 'value',
     '#value' => $name,
   );
-  $form['path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path'),
-    '#default_value' => isset($tour['path']) ? $tour['path'] : '',
+  $form['paths'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Paths'),
+    '#rows' => 3,
+    '#default_value' => isset($tour['paths']) ? implode("\n", $tour['paths']) : '',
+    '#description' => t('Enter one path per line, for example "node/1" or @front for the front page.', array('@front' => '<front>')),
     '#required' => TRUE,
   );
   $form['description'] = array(
@@ -304,6 +313,17 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
   $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save Changes'));
   return $form;
 }
+
+/**
+ * Render API callback: Checks if a field machine name is taken.
+ *
+ * @param $value
+ *   The machine name, not prefixed with 'field_'.
+ *
+ * @return
+ *   Whether or not the field machine name is taken.
+ */
+
 function joyride_machine_name_exists($value) {
   $tours = joyride_load_all();
   return isset($tours[$value]);
@@ -342,10 +362,28 @@ function joyride_ui_get_default_step() {
   );
 }
 
+/**
+ * Form validation handler for joyride_ui_edit_joyride().
+ *
+ * @see joyride_ui_edit_joyride_submit().
+ */
 function joyride_ui_edit_joyride_validate($form, &$form_state) {
   form_state_values_clean($form_state);
   
   unset($form_state['values']['actions']);
+  
+  // Cleanup paths
+  $paths = explode("\n", $form_state['values']['paths']);
+  $paths = array_map('trim', $paths);
+  $paths = array_filter($paths, 'strlen');
+  
+  // Validate paths
+  foreach($paths as $path) {
+    if(!menu_get_item($path) && $path != '<front>'){
+      form_set_error('paths', t('The path @path is invalid.', array('@path' => $path)));
+    }
+  }
+  $form_state['values']['paths'] = $paths;
   
   if(is_null($form_state['values']['content']) || (count($form_state['values']['content']) == 1 && $form_state['values']['content'][0]['delete'] == 1)) {
     form_set_error('form', 'No steps to save');
@@ -368,7 +406,11 @@ function joyride_ui_edit_joyride_validate($form, &$form_state) {
   }
 } 
 
-
+/**
+ * Form submission handler for joyride_ui_edit_joyride().
+ *
+ * @see joyride_ui_edit_joyride_validate().
+ */
 function joyride_ui_edit_joyride_submit($form, &$form_state) {  
   $name = $form_state['values']['name'];
   unset($form_state['values']['name']);
@@ -392,6 +434,15 @@ function joyride_ui_edit_joyride_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/user-interface/joyride/ui';
 }
 
+/**
+ * Returns HTML for the Joyride edit form.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - form: A render element representing the form.
+ *
+ * @ingroup themeable
+ */
 function theme_joyride_ui_edit_joyride($variables) {
   $form = $variables['form'];
   $rows = array();
@@ -400,7 +451,7 @@ function theme_joyride_ui_edit_joyride($variables) {
   if(isset($form['machine_name'])) {
     $output .= backdrop_render($form['machine_name']);
   }
-  $output .= backdrop_render($form['path']);
+  $output .= backdrop_render($form['paths']);
   $output .= backdrop_render($form['description']);
   $output .= backdrop_render($form['enabled']);
   $output .= backdrop_render($form['editable']);
@@ -441,6 +492,15 @@ function theme_joyride_ui_edit_joyride($variables) {
   return $output;
 }
 
+/**
+ * Returns HTML for a single step in the Joyride edit form.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - form: A render element representing the form.
+ *
+ * @ingroup themeable
+ */
 function theme_joyride_content_row($content) {
     $row['header'] = backdrop_render($content['header']);
     $row['body'] = backdrop_render($content['body']);
@@ -489,16 +549,16 @@ function joyride_ui_theme() {
 
  /**
  * Implements hook_config_info().
- * Provides two dtour files: one with default tours for demo purposes and one 
+ * Provides two tour files: one with default tours for demo purposes and one 
  * which is blank, for storing user-created tours.
  */
 function joyride_ui_config_info() {
-  $prefixes['tour.tour.default'] = array(
-    'label' => t('Joyride Default Tours'),
+  $prefixes['tour.tour.auto_start'] = array(
+    'label' => t('Joyride Default Tour - Autostart'),
     'group' => t('Joyride'),
   );
-  $prefixes['tour.tour.custom'] = array(
-    'label' => t('Joyride Custom Tours'),
+  $prefixes['tour.tour.manual_trigger'] = array(
+    'label' => t('Joyride Custom Tour- Manual trigger'),
     'group' => t('Joyride'),
   );
   return $prefixes;
