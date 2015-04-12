@@ -1,5 +1,6 @@
 <?php
 
+// add enabled to defaults
 
 /**
  * Implements hook_menu().
@@ -206,10 +207,12 @@ function joyride_ui_edit_joyride($form, &$form_state, $name) {
     '#type' => 'value',
     '#value' => $name,
   );
-  $form['path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path'),
-    '#default_value' => isset($tour['path']) ? $tour['path'] : '',
+  $form['paths'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Paths'),
+    '#rows' => 3,
+    '#default_value' => isset($tour['paths']) ? implode("\n", $tour['paths']) : '',
+    '#description' => t('Enter one path per line, for example "node/1" or @front for the front page.', array('@front' => '<front>')),
     '#required' => TRUE,
   );
   $form['description'] = array(
@@ -369,6 +372,19 @@ function joyride_ui_edit_joyride_validate($form, &$form_state) {
   
   unset($form_state['values']['actions']);
   
+  // Cleanup paths
+  $paths = explode("\n", $form_state['values']['paths']);
+  $paths = array_map('trim', $paths);
+  $paths = array_filter($paths, 'strlen');
+  
+  // Validate paths
+  foreach($paths as $path) {
+    if(!menu_get_item($path) && $path != '<front>'){
+      form_set_error('paths', t('The path @path is invalid.', array('@path' => $path)));
+    }
+  }
+  $form_state['values']['paths'] = $paths;
+  
   if(is_null($form_state['values']['content']) || (count($form_state['values']['content']) == 1 && $form_state['values']['content'][0]['delete'] == 1)) {
     form_set_error('form', 'No steps to save');
   }
@@ -435,7 +451,7 @@ function theme_joyride_ui_edit_joyride($variables) {
   if(isset($form['machine_name'])) {
     $output .= backdrop_render($form['machine_name']);
   }
-  $output .= backdrop_render($form['path']);
+  $output .= backdrop_render($form['paths']);
   $output .= backdrop_render($form['description']);
   $output .= backdrop_render($form['enabled']);
   $output .= backdrop_render($form['editable']);
