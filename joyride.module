@@ -106,6 +106,9 @@ function joyride_run_tour($name) {
   backdrop_add_css(backdrop_get_path('module', 'joyride') . '/inc/joyride_context.css');
   
   $tour = joyride_load($name);
+  
+  // Allow other modules to alter the tour.
+  backdrop_alter('joyride_tour', $tour);
 
   $tips_content = joyride_format_content($tour['content']);
   if(empty($tips_content)) return FALSE;

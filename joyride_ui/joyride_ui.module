@@ -1,10 +1,5 @@
 <?php
 
-//todos
-// change config scheme to tour per file and delete export stuff.
-// add alter/hooks
-// change demo page
-
 
 /**
  * Implements hook_menu().
@@ -105,7 +100,6 @@ function joyride_ui_list_joyrides() {
     return t('There are no tours.');
   }
 }
-
 
 function joyride_ui_disable_joyride($form, &$form_state, $name) {
   $tour = joyride_load($name);
