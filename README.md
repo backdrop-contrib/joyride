@@ -4,6 +4,8 @@ Joyride
 Description
 -----------
 
+This module is currently in active development and API changes are inevitable until a stable release is announced.
+
 This module provides Backdrop integration with "Zurb's Joyride Jquery plugin":https://github.com/zurb/joyride in order to provide a tour of different html elements on your Backdrop site.
 
 You can view a demo of how Joyride works here: http://www.zurb.com/playground/jquery-joyride-feature-tour-plugin
@@ -44,8 +46,7 @@ Tour config files may have the following settings:
   tour path.
 - play_once: (values 0 or 1) For auto_start tours, whether the tour plays once,
   or every time you navigate to the path.
-- exported: (values 0 or 1) Whether this is a tour provided by tour module or
-  by another contrib module.
+- enabled: (values 0 or 1) Whether this tour is enabled.
 - content: (An array of tour steps)
 
 Tour content(steps) may have the following values:
@@ -58,19 +59,21 @@ See http://www.zurb.com/playground/jquery-joyride-feature-tour-plugin
 
 Tour UI
 -------
-- View all tours at admin/config/user-interface/joyride to edit or delete.
-- New tours may be exported; This means the tour is saved in a 
-`tour.exported.<machine_name>` file in the site config folder (in files/<hash>/active).
- The file should then be renamed to `tour.<module>.<any_id>` (also rename the 
- "_config_name" key in the file)and saved in the `/config` folder of the 
- providing module. This is useful if your wish your module to provide a guided 
+- View all tours at admin/config/user-interface/joyride to edit or disable.
+- New tours are saved in a `tour.tour.<machine_name>` file in the site config 
+ folder (in files/<hash>/active).
+- If providing a tour with your module, this config file should be copied to
+  the `/config` folder of the providing module then renamed to 
+  `tour.<your_module>.<machine_name>` (also rename the  "_config_name" key 
+  in the config file). 
+- This is useful if your wish your module to provide a guided 
  tour of its features. Joyride will automatically pick up your tour config. 
 - Exported tours can be set to be editable or not. 
-- Tours being created just for the use of the current site need not be exported;
-they will be saved in Joyride module's `tour.tour.custom` folder. Careful not 
-to mark them as not editable. If this happens, the module should be disabled and
-the config file manually edited to set editable to "1".
-- Toour UI is not required for having site tours. Tours can be also written 
+- Tours being created just for the use of the current site will be saved in 
+  Joyride module's config folder. Careful not to mark them as not editable. 
+  If this happens, the module should be disabled and the config file 
+  manually edited to set editable to "1".
+- Tour UI is not required for having site tours. Tours can be also written 
 manually following standard Backdrop config file rules.
 
 LICENSE
